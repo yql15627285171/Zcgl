@@ -9,32 +9,33 @@
 			<button type="button" class="btn ml-20" @click="searchProperty(propertyNum)">搜索</button>
 		</div>
 
-		<div class="change-info" v-show="isSearched">
-			<template v-for="(item,index) in equipmentInfo">
-				<div class="operation-board-line" v-if="!item.last">
+		<div class="change-info" v-show="isSearched" >
+			<template v-for="(item,index) in equipmentInfo" >
+				<div class="operation-board-line" v-if="!item.last" >
 					<div class="operationbpard-line-left">
 						{{item.name}}
 					</div>
 					<input v-if='item.input' :disabled="item.disabled" v-model="item.value"></input>
-					<v-choosen v-if='item.choosen' :choosens='item.info'>
+					<v-choosen v-if='item.choosen' :choosens='item.info' :defaultChosenindex='item.defaultIndex' @on-change='valueChange(item.name,$event)'>
 					</v-choosen>
-					<my-datepicker v-if="item.choseDate" class='choseDate'></my-datepicker>
+					<!-- <my-datepicker v-if="item.choseDate" class='choseDate' @on-change="timeChange" :defaultDate="defaultDate"></my-datepicker> -->
+					<my-datepicker :date.sync="choseDate" :option="option" :limit="limit" v-if="item.choseDate" class='choseDate'></my-datepicker>
 					<input type="file" v-if="item.picture" class="no-border" accept="image/*" @change="changeImage($event)">
 					<!-- <button v-if="item.last" class="sureBtn">确定修改</button> -->
 				</div>
 				<div v-else id="imgArea">
-					<img src="" alt="" >
+					<img :src="imgSrc" alt="" >
 				</div>
 			</template>	
 				
 		</div>
-		<div class="sureBtn"  v-show="isSearched">确定修改</div>	
+		<div class="sureBtn"  v-show="isSearched" @click='sureChange'>确定修改</div>	
 	</div>
 </template>
 <script>
 import VChoosen from '../base/choosen'
-// import VInput from '../base/input'
-import myDatepicker from '../base/datePicker'
+
+import myDatepicker from 'vue-datepicker/vue-datepicker-es6.vue'
 export default{
 	name:'change',
 	components:{
@@ -44,7 +45,8 @@ export default{
 	data(){
 		return{
 			propertyNum:'',
-			// isSearched:false,
+			isSearched:false,
+			imgSrc:'',
 			equipmentInfo:[
 				{
 					name:'资产编号：',
@@ -57,22 +59,6 @@ export default{
 					input:true,
 					value:''
 				},
-				{
-					name:'资产原值：',
-					input:true,
-					value:''
-				},
-				{
-					name:'购置日期：',
-					choseDate:true,
-					value:'',
-				},
-				{
-					name:'存档地点：',
-					input:true,
-					value:''
-				},
-				
 				{
 					name:'品牌：',
 					input:true,
@@ -103,8 +89,16 @@ export default{
 					input:true,
 					value:''
 				},
-				
-				
+				{
+					name:'资产原值：',
+					input:true,
+					value:''
+				},
+				{
+					name:'购置日期：',
+					choseDate:true,
+					value:'2017.1.01',
+				},
 				{
 					name:'当前负责人：',
 					input:true,
@@ -121,6 +115,12 @@ export default{
 					input:true,
 					value:''
 				},
+
+				{
+					name:'存档地点：',
+					input:true,
+					value:''
+				},
 				
 				{
 					name:'生产厂家：',
@@ -133,63 +133,265 @@ export default{
 					value:''
 				},
 				{
-					name:'状态：',
-					value:'',
-					choosen:true,
-					info:['在用','维修','遗弃']
-				},
-				{
 					name:'国产/进口：',
-					value:'',
+					value:'国产',
+					defaultIndex:[-1],
 					choosen:true,
 					info:['国产','进口']
 				},
 				{
-					name:'修改图片：',
-					picture:true
+					name:'状态：',
+					value:'在用',
+					defaultIndex:[-1],
+					choosen:true,
+					info:['在用','维修','废弃']
+				},
+				{
+					name:"选取图片：",
+					picture:true,
+					value:''
 				},
 				{
 					name:'备注：',
 					input:true,
 					value:''
 				},
+				// {
+				// 	showPic:true,
+				// 	value:''
+				// }
 				{
-					last:true
+					last:true,
+					value:''
 				}
 				],
-		}
-	},
-	computed:{
-		isSearched(){
-			if ( this.propertyNum && this.propertyNum.length>0) {
-				return true;
-			}
-			return false;
-		}
-	},
 
-	// 界面每次出现都会执行
-	activated:function(){
-		this.propertyNum = this.$route.params.searchNum
-		this.equipmentInfo[0].value=this.propertyNum;
+				// datePicker数据
+				choseDate:{
+		        time:''
+		      },
+		      option: {
+		        type: 'day',
+		        week: ['周一', '周二', '周三', '周四', '周五', '周六', '周日'],
+		        month: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+		        format: 'YYYY-MM-DD',
+		        placeholder: '请选择日期',
+		        inputStyle: {
+		          'display': 'inline-block',
+		          'font-size': '14px',
+		          'border': '1px solid #ccc',
+		          'color': '#5F5F5F',
+		          width: '200px'
+		        },
+		        color: {
+		          header: '#ccc',
+		          headerText: '#f00'
+		        },
+		        buttons: {
+		          ok: '确定',
+		          cancel: '取消'
+		        },
+		        overlayOpacity: 0.5, // 0.5 as default
+		        dismissible: true // as true as default
+		      },
+
+		      limit: [{
+		        type: 'weekday',
+		        available: [0,1, 2, 3, 4, 5,6]
+		      }]
+	
+		}
+	},
+	// 观察选择时间的改变
+	computed:{
+		time:function(){
+			return this.choseDate.time
+		}
+	},
+	watch:{
+		time:function(newValue){
+			
+			this.equipmentInfo[9].value = newValue
+		}
 	},
 
 	methods:{
 		// 搜索资产编号
 		searchProperty(num){
-			console.log(this.searchNum)
-
+			
+			// 将
+			var evalue = this.encrypt()
+			var params = {
+				assetNo:num,
+				evalue:evalue
+			}
 			if (/^[0-9]*$/g.test(num) && num.length>0) {
-				this.isSearched=true;
-				this.equipmentInfo[0].value=num;
-			} else {}
+				// 网路请求
+				this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAssetInfo',this.qs.stringify(params))
+				.then((res)=>{
+					
+				 var result = res.data.replace(/<[^>]+>/g, "").replace(/[\r\n]/g, "")
+				 console.log(result)
+				 if (result != "") {
+				 	// statement
+				 	this.isSearched=true;
+				 	var resultArr = result.split(",")
+				 	console.log(resultArr)
+				 	// console.log(resultArr)
+				 	// 先循环1
+				 	for (var i = 0; i < resultArr.length - 1; i++) {
+				 		this.equipmentInfo[i].value = resultArr[i]
+				 	}
+
+				 	this.equipmentInfo[19].value = resultArr[18]
+				 	// 把错乱位置数据换一下
+				 	var temp = this.equipmentInfo[16].value
+				 	this.equipmentInfo[16].value = this.equipmentInfo[15].value
+				 	this.equipmentInfo[15].value = temp
+				 }
+				 //设置defaultIndex
+				 this.equipmentInfo[16].defaultIndex.splice(0, 1)
+				 this.equipmentInfo[17].defaultIndex.splice(0, 1)
+				 var newTradeIndex = this.tradeDeafaultIndex(this.equipmentInfo[16].value)
+				 var newStatusIndex = this.assetsStatus(this.equipmentInfo[17].value)
+
+
+				this.equipmentInfo[16].defaultIndex.push(newTradeIndex)
+				this.equipmentInfo[17].defaultIndex.push(newStatusIndex)
+				
+			
+				this.choseDate.time = this.equipmentInfo[9].value
+
+				// 显示图片
+				this.imgSrc = 'https://www.stsidea.com/Images/'+this.equipmentInfo[0].value+'.jpg'
+
+				})
+
+			}
 			
 		},
 		// 选取图片
 		changeImage(event){
-			
+			var that = this
+			this.showuploadImage=true
+			if(typeof FileReader === 'undefined'){
+	        	// $("#imgArea").innerHTML = "抱歉，你的浏览器不支持预览";
+	       		 event.target.setAttribute('disabled','disabled');
+	       		 return;
+ 		   }
+
+ 		   var reader = new FileReader()
+
+ 		   reader.readAsDataURL(event.target.files[0])
+ 		   this.choseImage = event.target.files[0]
+ 		   reader.onload=function(e){
+ 		   		that.imgSrc = this.result;
+ 		   }
+		},
+		// 选取值改变
+		valueChange(attr,index){
+			if (attr == '国产/进口：') {
+				// 国产、进口
+				this.equipmentInfo[16].value = this.equipmentInfo[16].info[index]
+
+			}else{
+				// 状态
+				this.equipmentInfo[17].value = this.equipmentInfo[17].info[index]
+			}
+		},
+		// timeChange(val){
+		// 	console.log(val)
+		// 	this.equipmentInfo[9].value = val
+		// },
+		// 获取defaultIndex
+		tradeDeafaultIndex(name){
+			if (name == '国产') {
+				return 0 
+			}else if(name == '进口'){
+				return 1
+			}else {
+				return -1
+			}
+		},
+		assetsStatus(name){
+			if (name == '在用') {
+				return 0 
+			}else if(name == '维修'){
+				return 1
+			}else if(name == '废弃'){
+				return 2
+			}else{
+				return -1
+			}
+		},
+
+
+		// 确认修改
+		sureChange(){
+			var AssetNo = this.equipmentInfo[0].value
+			var items = 'AssetName='+this.equipmentInfo[1].value + ',' +
+						'AssetBrand='+this.equipmentInfo[2].value + ',' +
+						'AssetType='+this.equipmentInfo[3].value + ',' +
+						'AssetSize='+this.equipmentInfo[4].value + ',' +
+						'FactoryNo='+this.equipmentInfo[5].value + ',' +
+						'ManagementNo='+this.equipmentInfo[6].value + ',' +
+						'AssetOrdor='+this.equipmentInfo[7].value + ',' +
+						'PurchasePrice='+this.equipmentInfo[8].value + ',' +
+						'PurchaseTime='+this.equipmentInfo[9].value + ',' +
+						'KeeperName='+this.equipmentInfo[10].value + ',' +
+						'KeeperPartLever1='+this.equipmentInfo[11].value + ',' +
+						'KeeperPartLever2='+this.equipmentInfo[12].value + ',' +
+						'Place='+this.equipmentInfo[13].value + ',' +
+						'FactoryName='+this.equipmentInfo[14].value + ',' +
+						'Accessory='+this.equipmentInfo[15].value + ',' +
+						'TradeType='+this.equipmentInfo[16].value + ',' +
+						'Status='+this.equipmentInfo[17].value + ',' +
+						'remarks='+this.equipmentInfo[19].value 
+						
+
+ 			var param = {
+ 				assetNo:AssetNo,
+ 				items:items,
+ 				evalue:this.encrypt()
+ 			}
+ 			// var param = new FormData()
+ 			// param.append('assetNo',AssetNo)
+ 			// param.append('items',items)
+ 			// param.append('evalue','')
+ 			
+			this.$axios.post('https://www.stsidea.com/weixin.asmx/UpdateAssetInfoByAdmin',this.qs.stringify(param))
+			.then((res)=>{
+				console.log(res.data)
+				// this.unloadImage()
+				// 显示图片
+
+
+			})
+			.catch((res)=>{
+
+			})
+		},
+		// 选择照片
+
+		// 上传修改照片
+		unloadImage(){
+			var param = new FormData()
+			param.append('file',this.choseImage,this.equipmentInfo[0].value);
+			param.append('name',this.equipmentInfo[0].value)
+			param.append('evalue','0')
+			// console.log(param)
+			 // let config = {
+    //         headers:{'Content-Type':'multipart/form-data'}
+    //       };
+			this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveImageForHtml',this.qs.stringify(param))
+			.then((res)=>{
+				console.log(res.data)
+			})
+		
 		}
 	}
+	
+
 }
 </script>
 

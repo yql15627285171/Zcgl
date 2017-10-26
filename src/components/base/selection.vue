@@ -25,6 +25,11 @@ export default{
 			isDrop:false
 		}
 	},
+  // watch:{
+  //   selections:function(newValue){
+  //     console.log('改变了')
+  //   }
+  // },
 	methods:{
 		toggleDrop(){
 			this.isDrop = !this.isDrop
@@ -33,7 +38,7 @@ export default{
 			this.nowIndex = index
 			this.isDrop = false
       // console.log(this.selections)
-			this.$emit("on-change",this.selections[this.nowIndex])
+			this.$emit("on-change",index)
 		}
 		
 	}

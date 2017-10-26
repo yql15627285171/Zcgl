@@ -11,54 +11,63 @@
 			<div class="chose-item inline-block ml-20">
 				负责人：<input type="text" v-model="selectPerson" @change ="selectChange">
 			</div>
-			<div class="chose-item inline-block ml-20">
+			<!-- <div class="chose-item inline-block ml-20">
 				名称：
 				<v-selection :selections="name" class="inline-block" @on-change="selectChange('name',$event)"></v-selection>
-			</div>
+			</div> -->
 			<div class="chose-item inline-block ml-20">
 				状态：
 				<v-selection :selections="state" class="inline-block" @on-change="selectChange('state',$event)"></v-selection>
 			</div>
 			<div class="button inline-block ml-20" @click="export2Excel">导出表格</div>
 		</div> 
-		<div class="table-list">
+		<div class="table-list" v-if="showData.length>0">
 			<table>
 				<tr>
 					<th v-for="head in tableHeads">{{head.label}}</th>
 				</tr>
-				<tr v-for="item in showData" class="showDetails">
+				<tr v-for="item in showTableData" class="showDetails">
 				
 					<td v-for="head in tableHeads">
-						<router-link :to="{name:'change',params:{searchNum:item.num}}">
+						<!-- <router-link :to="{name:'change',params:{searchNum:item.num}}"> -->
 							<span>{{item[head.key]}}</span>
-						</router-link>
+						<!-- </router-link> -->
 					</td>
 				
 					
 				</tr>
 			</table>
-			<!-- <my-page :total="2000" @pagechange="pagechange"></my-page> -->
+			<!-- <my-page :total="2000" @pagechange="pagechange" class="page"></my-page> -->
+			<my-page :total="showData.length" @pagechange="pagechange" class="page" v-if="showData.length>10"></my-page>
 		</div>
+
+<!-- 		<div class="page">
+			<my-page :total="showData.length" @pagechange="pagechange" class="page"></my-page>
+		</div> -->
 	</div>
 </template>
 <script>
 import vSelection from '../base/selection'
+import myPage from '../base/pageComponent'
 export default{
 	name:"export",
 	components:{
-		vSelection
+		vSelection,
+		myPage
 	},
 	created(){
 		// Vue开始生成时，可以在这里进行网络请求
-		this.showData = this.dataSource;
+		// this.showData = this.dataSource;
+
 	},
 	data(){
 		return{
-			selectName:"全部",
+			// selectName:"全部",
 			selectState:"全部",
 			selectPerson:"",
 			selectNum:"",
-			showData:[],
+			showData:[],//显示在excel的数据
+			showTableData:[],
 			state:[
 			{
 				label:"全部",
@@ -69,7 +78,7 @@ export default{
 				value:1
 			},
 			{
-				label:"遗弃",
+				label:"废弃",
 				value:2
 			}],
 			name:[
@@ -93,20 +102,20 @@ export default{
 			tableHeads:[
 			{
 				label:'资产编号',
-				key:'num'
+				key:'AssetNo'
 			},
 			{
 				label:'名称',
-				key:'name'
+				key:'AssetName'
 			},
 			{
 				label:'品牌',
-				key:'brand'
+				key:'AssetBrand'
 			},
-			{
-				label:'型号',
-				key:'typeNum'
-			},
+			// {
+			// 	label:'型号',
+			// 	key:'AssetType'
+			// },
 			// {
 			// 	label:'规格',
 			// 	key:''
@@ -125,27 +134,27 @@ export default{
 			// },
 			{
 				label:'资产原值',
-				key:'price'
+				key:'PurchasePrice'
 			},
 			{
 				label:'日期',
-				key:'date'
+				key:'PurchaseTime'
 			},
 			{
 				label:'负责人',
-				key:'person'
+				key:'KeeperName'
 			},
 			{
 				label:'当前中心',
-				key:'nowCenter'
+				key:'KeeperPartLever1'
 			},
 			{
 				label:'使用部门',
-				key:'department'
+				key:'KeeperPartLever2'
 			},
 			{
 				label:'存放地点',
-				key:'place'
+				key:'Place'
 			},
 			// {
 			// 	label:'生产厂家',
@@ -161,7 +170,7 @@ export default{
 			// },
 			{
 				label:'状态',
-				key:'state'
+				key:'Status'
 			},
 			// {
 			// 	label:'备注',
@@ -170,79 +179,93 @@ export default{
 			],
 
 			// 数据源
-			dataSource:[
-			{
-				num:'1013',
-				name:'电脑',
-				brand:'联想',
-				typeNum:'tc-ewk23',
-				price:'2000',
-				date:'2010-07-01',
-				person:'王春明',
-				nowCenter:'xxx',
-				department:'研发中心',
-				place:'LT2F',
-				state:'在用'
-			},
-			
-			{
-				num:'1015',
-				name:'交换机',
-				brand:'联想',
-				typeNum:'tc-ewk23',
-				price:'2000',
-				date:'2010-07-01',
-				person:'王春梅',
-				nowCenter:'xxx',
-				department:'研发中心',
-				place:'LT2F',
-				state:'遗弃'
-			},
-			{
-				num:'1014',
-				name:'电脑',
-				brand:'联想',
-				typeNum:'tc-ewk23',
-				price:'2000',
-				date:'2010-07-01',
-				person:'于其亮',
-				nowCenter:'xxx',
-				department:'研发中心',
-				place:'LT2F',
-				state:'在用'
-			},
-			{
-				num:'1016',
-				name:'交换机',
-				brand:'联想',
-				typeNum:'tc-ewk23',
-				price:'2000',
-				date:'2010-07-01',
-				person:'王春梅',
-				nowCenter:'xxx',
-				department:'研发中心',
-				place:'LT2F',
-				state:'在用'
-			}
-			],
+			dataSource:[],
 
 		}
 	},
-	computed:{
-		showdata(){
-
+	mounted(){
+		var params = {
+			AssetNo:"ALL",
+			evalue:this.encrypt()
 		}
+		this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAssetInfo',this.qs.stringify(params))
+		.then((res)=>{
+			console.log(res.data)
+			var resultString = res.data.replace(/<[^>]+>/g, "").replace(/[\r\n]/g, "").replace(/[ ]/g, "")
+			if (resultString.indexOf("失败") != 0){
+				// statement
+				var result = resultString.split("|")
+
+		
+				for (var i = 0; i < result.length; i++) {
+					var aPiece = result[i].split(",")
+					// 将数据封装成对象
+					var resObject = {
+						AssetNo:aPiece[0],
+
+						AssetName:aPiece[1],
+
+						AssetBrand:aPiece[2],
+
+						AssetType:aPiece[3],
+
+						AssetSize:aPiece[4],
+
+						FactoryNo:aPiece[5],
+
+						ManagementNo:aPiece[6],
+
+						AssetOrdor:aPiece[7],
+
+						PurchasePrice:aPiece[8],
+
+						PurchaseTime:aPiece[9],
+
+						KeeperName:aPiece[10],
+
+						KeeperPartLever1:aPiece[11],
+
+						KeeperPartLever2:aPiece[12],
+
+						Place:aPiece[13],
+
+						FactoryName:aPiece[14],
+
+						TradeType:aPiece[15],
+
+						Accessory:aPiece[16],
+
+						Status:aPiece[17],
+
+						remarks:aPiece[18],
+					}
+					this.dataSource.push(resObject)
+					this.showData = this.dataSource
+					
+					if (this.dataSource.length<10) {
+						this.showTableData = this.dataSource
+					}else{
+						this.showTableData = this.dataSource.slice(0,10)
+					}
+					
+				}
+
+			}
+			
+		})
+		
 	},
 	methods:{
 		// 分类选择
-		selectChange(attr,val){
+		selectChange(attr,index){
 
 			var that = this;
+
 			if (attr == "name") {
-				this.selectName = val.label;
+				this.selectName = this.name[index].label;
 			}
 			else if(attr == "state"){
-				this.selectState = val.label
+				this.selectState = this.state[index].label
 			}
 
 			
@@ -252,19 +275,19 @@ export default{
 				// statement
 				this.showData = temp.filter(function(element) {
 					
-					return (element.num == that.selectNum);
+					return (element.AssetNo == that.selectNum);
 				})
 				
 				temp = this.showData
 			}else{
 				this.showData = temp;
 			}
-			// 筛选名字
+			// 筛选负责人
 			if (this.selectPerson != "") {
 				// statement
 				this.showData = temp.filter(function(element) {
 					
-					return (element.person == that.selectPerson);
+					return (element.KeeperName == that.selectPerson);
 				})
 				
 				temp = this.showData
@@ -272,30 +295,49 @@ export default{
 				this.showData = temp;
 			}
 			// 筛选设备名称
-			if (this.selectName != "全部") {
-				this.showData = temp.filter(function(element) {
+			// if (this.selectName != "全部") {
+			// 	this.showData = temp.filter(function(element) {
 					
-					return (element.name == that.selectName);
-				})
+			// 		return (element.AssetName == that.selectName);
+			// 	})
 				
-				temp = this.showData
-			}else {
-				this.showData = temp;
-			}
+			// 	temp = this.showData
+			// }else {
+			// 	this.showData = temp;
+			// }
 
 			// 筛选状态
 			if (this.selectState!= "全部") {
-				console.log('sss')
 				this.showData = temp.filter(function(element) {
-					return (element.state == that.selectState);
+					return (element.Status == that.selectState);
 				})
 				temp = this.showData
 			}else {
 				this.showData = temp
-			}			
+			}
+
+			if (this.showData.length<10) {
+				this.showTableData = this.showData
+			}else{
+				this.showTableData = this.showData.slice(0,10)
+			}
+			console.log(this.showTableData)
+
 		
 		},
 		
+		// 改变页面的时候
+		pagechange(currentPage){
+			console.log(currentPage)
+			var startIndex = (currentPage - 1) * 10
+			this.showTableData = this.showData.slice(startIndex, startIndex+10)
+			// this.showTableData.splice(0, this.showTableData.length)
+			// for (var i = 0; i < 10; i++) {
+			// 	this.showTableData.push(this.showData[startIndex+i])
+			// }
+		},
+
+
 		// 显示详细信息，跳转到修改界面
 		// showDetailsMessage(){
 		// 	console.log('要跳转了')
@@ -305,13 +347,14 @@ export default{
 		export2Excel() { 
 　　　　　　require.ensure([], () => { 
 　　　　　　　　const { export_json_to_excel } = require('../../vendor/Export2Excel'); 
-　　　　　　　　const tHeader = ['资产编号', '名称', '品牌','型号','资产原值','日期','负责人','当前中心','使用部门','存放地点','状态']; 
-　　　　　　　　const filterVal = ['num','name','brand','typeNum','price','date','person','nowCenter','department','place','state']; 
+　　　　　　　　const tHeader = ['资产编号', '设备名称', '品牌','型号','规格','出厂编号','行政部门编号','序列号','资产原值','日期','当前负责人','当前中心','使用部门','存放地点','生产厂家','国产/进口','附属设备或配置','状态','备注']; 
+　　　　　　　　const filterVal = ['AssetNo','AssetName','AssetBrand','AssetType','AssetSize','FactoryNo','ManagementNo','AssetOrdor','PurchasePrice','PurchaseTime','KeeperName','KeeperPartLever1','KeeperPartLever2','Place','FactoryName','TradeType','Accessory','Status','remarks']; 
 　　　　　　　　const list = this.showData; 
 　　　　　　　　const data = this.formatJson(filterVal, list); 
 　　　　　　　　export_json_to_excel(tHeader, data, '列表excel'); 
 　　　　　　}) 
 　　　　}, 
+
 　　　　formatJson(filterVal, jsonData) { 
 　　　　　　return jsonData.map(v => filterVal.map(j => v[j])) 
 　　　　}
@@ -319,10 +362,14 @@ export default{
 
 	}
 
+
 }
 </script>
 
 <style scoped>
+.export-board{
+	/* position: relative; */
+}
 
 .inline-block{
 	display: inline-block;
@@ -339,9 +386,9 @@ export default{
   	cursor: pointer;
   	border-radius: 5px;
 }
-
+/* 样式一 */
 .table-list {
-  /* margin-top: 20px; */
+
   width: 900px;
   margin: 20px auto;
 }
@@ -355,7 +402,8 @@ export default{
 .table-list th {
   border: 1px solid #e3e3e3;
   text-align: center;
-  width: 100px
+
+  vertical-align: middle;
 }
 
 .table-list th
@@ -367,8 +415,37 @@ export default{
   background: #4fc08d;
   color: #fff;
   border: 1px solid #4fc08d;
-  /* cursor: pointer; */
 }
+
+
+/* 样式2 */
+/* .table-list {
+
+  width: 900px;
+  margin: 20px auto;
+}
+
+.table-list table {
+  width: 100%;
+  background: #fff;
+}
+
+.table-list td,
+.table-list th {
+  border: 1px solid #e3e3e3;
+  text-align: center;
+  padding: 10px 0;
+  width: 100px;
+  vertical-align: middle;
+}
+
+.table-list th {
+  background: #4fc08d;
+  color: #fff;
+  border: 1px solid #4fc08d;
+} */
+
+
 
 .showDetails:hover{
 	background-color: #f0f0f0;
@@ -381,5 +458,12 @@ export default{
 	line-height: 35px;
 	width: 79px
 }
+
+/* .page{
+	position: absolute;
+	width: 1000px;
+	bottom: 10px;
+
+} */
 
 </style>

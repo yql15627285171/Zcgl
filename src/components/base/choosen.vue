@@ -4,7 +4,7 @@
           <li
           v-for="(item, index) in choosens"
           @click="chosenSelection(index)"
-          :class="{active:index === nowIndex}"
+          :class="{active:index == nowIndex}"
           >{{ item }}</li>
         </ul>
       </div>
@@ -14,16 +14,23 @@
 export default{
 	name:'choosen',
 	props:{
-		choosens:Array
+		choosens:Array,
+    defaultChosenindex:Array
 	},
 	data(){
 		return{
-			nowIndex: 0
+			nowIndex: -1
 		}
 	},
+  watch:{
+    defaultChosenindex:function(newValue){
+      this.nowIndex = newValue[0]
+    }
+  },
 	methods:{
 		chosenSelection(index){
 			this.nowIndex = index
+      this.$emit('on-change',index)
 		}
 	}
 }

@@ -35,7 +35,11 @@
     <!-- 弹框 -->
     <!-- 登录 -->
     <v-dialog :isShow="showLogDialog"  @on-close="closeDialog">
-      <log-form></log-form>
+      <!-- <log-form></log-form> -->
+      <div style="text-align:center">
+        <img :src="loginCode" alt="" style="width:150px;height:150px">
+      </div>
+      
     </v-dialog>
     <!-- 退出 -->
     <v-dialog :isShow="showOutDialog"  @on-close="closeDialog">
@@ -64,6 +68,9 @@ export default {
       showLogDialog:false,
       showOutDialog:false,
       showAboutDialog:false,
+      loginCode:'',
+      guid:'',//二维码标记
+      timer:null,
       operation:[
       {
         name:"数据导入",
@@ -93,6 +100,11 @@ export default {
         name:"资产标签",
         active:false,
         path:"/dCode"
+      },
+      {
+        name:'盘点启动',
+        active:false,
+        path:'/start'
       }],
       iconMap:{
         '/import':require('./assets/import.png'),
@@ -100,6 +112,7 @@ export default {
         '/export':require('./assets/export.png'),
         '/sure':require('./assets/sure.png'),
         '/dCode':require('./assets/dCode.png'),
+        '/start':require('./assets/start.png')
       }
     }
   },
@@ -110,9 +123,49 @@ export default {
     }
   },
   methods:{
+
+    
+
     showLoginModel(){
+
       this.showLogDialog=true
+      this.$axios.get('https://www.stsidea.com/weixin.asmx/GetQRCodeImageForLoad')
+      .then((res)=>{
+        var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+        this.loginCode = 'https://www.stsidea.com'+result[1]
+        
+        // 获取guid
+        var picName = result[1].split("/")[2]
+        this.guid = picName.split(".")[0]
+        console.log(this.guid)
+        this.listenHeart()
+        // this.timer = setInterval(handler: any, timeout?: long, arguments...: any)
+      })
+
+
     },
+
+    // 监听心跳
+    listenHeart:function(){
+      var param = {guid:this.guid}
+
+      this.$axios.get('https://www.stsidea.com/weixin.asmx/QueryQRCodeScanResult',{
+        params:param
+      })
+      .then((res)=>{
+        var result =res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：", )
+        console.log(result)
+        if (result[0]== '失败') {
+          this.timer =   setTimeout(()=>{this.listenHeart()}, 2000)
+          // this.listenHeart()
+        }else  {
+          clearTimeout(this.timer)
+          this.showLogDialog=false
+        }
+       
+      })
+    },
+
     showOutModel(){
       this.showOutDialog=true
     },
@@ -120,7 +173,7 @@ export default {
       this.showAboutDialog=true
     },
     closeDialog(){
-      this.showLogDialog=false;
+      // this.showLogDialog=false;
       this.showOutDialog=false
       this.showAboutDialog=false
     }
@@ -268,14 +321,17 @@ body {
   min-height: 700px;
   margin-left: 20px;
   background-color: #fff;
+  position: relative;
 }
 
-.active,
-.content-left li:hover {
+.active{
   background: #4fc08d;
   color: #fff;
 }
 
+.content-left li:hover {
+  background: #ccc;
+}
 
 /* 全局控制 */
 .board-intro p {

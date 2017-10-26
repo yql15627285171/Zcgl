@@ -8,9 +8,11 @@
 			资产编号：<input v-model="propertyNum" @keyup.enter="searchProperty">
 			<div type="button" class="btn ml-20" @click="searchProperty">搜索</div>
 			<div type="button" class="btn ml-20" @click="downloadCode">下载</div>
+			<!-- <a :href="codeUrl" target="_blank" class="btn" download="w3logo">下载</a> -->
+
 		</div>
-		<div class="codeArea">
-			<img src="https://www.stsidea.com/Images/0200230.jpg" alt="">
+		<div class="codeArea" v-if="codeUrl.length>0">
+			<img :src="codeUrl" alt="">
 		</div>
 	</div>
 </template>
@@ -20,21 +22,49 @@ export default{
 	data(){
 		return{
 			propertyNum:"",
-			downloadNum:""
+			// downloadNum:"",
+			codeUrl:''
 		}
 	},
 	methods:{
 		searchProperty(){
-			if (/^[0-9]*$/g.test(this.propertyNum) && this.propertyNum.length>0) {
-				this.downloadNum == this.downloadNum
+			if (/^[0-9]*$/g.test(this.propertyNum) && this.propertyNum.trim().length>0) {
 				// 网络请求图片
+				var params = {
+					CodeNo:this.propertyNum.trim(),
+					evalue:this.encrypt()
+				}
+				
+				this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveQRCodeImage',this.qs.stringify(params))
+				.then((res)=>{
+					console.log(res)
+					var resunltArr =res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+					// console.log(resunltArr)
+					this.codeUrl = "https://www.stsidea.com" + resunltArr[1]
+					console.log(this.codeUrl)
+				})
+				.catch((error)=>{
+
+				})
+				// this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveQRCodeImage', {CodeNo: this.propertyNum})
+				// .then((res)=>{
+				// 	console.log(res)
+				// })
+				// .catch((error)=>{
+
+				// })
+
 			} 
 			
 		},
 		downloadCode(){
-			if(this.downloadNum.length>0){
-				
-			}
+				// window.open(this.codeUrl)
+				this.$axios({
+					methods:'POST',
+					url:this.codeUrl,
+					
+				})
+			
 		}
 	}
 }
@@ -60,14 +90,15 @@ export default{
 }
 
 .codeArea{
-	width: 285px;
-	height: 200px;
-	background: orange;
-	margin: 50px 0 0 150px;
+	width: 500px;
+	height: 250px;
+	/* background: orange; */
+	margin: 50px 0 0 100px;
 }
 
 .codeArea img{
 	width: 100%;
-	height: 100%
+	height: 100%;
+	border: none;
 }
 </style>

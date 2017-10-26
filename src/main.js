@@ -8,11 +8,22 @@ import importPage from "./components/page/import"
 import surePage from "./components/page/sure"
 import changePage from "./components/page/change"
 import dCode from "./components/page/dCode"
-// import axios from 'axios'
+import startPage from './components/page/start'
+import axios from 'axios'
+import qs from 'qs'
+import Encrypt from './AES/myAES'
+// import AES from './AES/AES'
 
 Vue.config.productionTip = false
 // Vue.use(axios)
 Vue.use(VueRouter)
+Vue.use(Encrypt)
+Vue.prototype.$axios = axios;
+Vue.prototype.qs = qs
+
+
+
+
 let router = new VueRouter({
 	// mode:'history',
 	routes:[
@@ -40,6 +51,10 @@ let router = new VueRouter({
 	{
 		path:'/dCode',
 		component:dCode
+	},
+	{
+		path:'/start',
+		component:startPage
 	}]
 })
 

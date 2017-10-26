@@ -20,7 +20,7 @@
 		<!-- 单个导入表单区 -->
 		<div class="operation-board-form">
 			<h3 class="ml-20">单个导入</h3>
-			<div class="ml-20">说明：新购置的设备需要把信息导入数据库，可在此页面操作,'*'为重要信息</div>
+			<div class="ml-20">说明：新购置的设备需要把信息导入数据库，资产编号不能为空</div>
 			<div class="operation-simple-in mt-20 mb-20">
 				<template v-for="(item,index) in equipmentInfo">
 					<div class="operation-board-line" v-if="!item.showPic">
@@ -28,11 +28,11 @@
 							{{item.name}}
 						</div>
 						
-						<input v-if='item.input'></input>
-						<v-choosen v-if='item.choosen' :choosens='item.info'>
+						<input v-if='item.input' v-model='item.value'></input>
+						<v-choosen v-if='item.choosen' :choosens='item.info' :defaultChosenindex='[-1]' @on-change="selectChange(item.name,$event)" >
 						</v-choosen>
-						<my-datepicker v-if="item.choseDate" class='choseDate'></my-datepicker>
-						<!-- <span v-show="item.star">*</span> -->
+						<my-datepicker v-if="item.choseDate" class='choseDate' @on-change="selectChange(item.name,$event)"></my-datepicker>
+					
 						<!-- 上传图片 -->
 						<input type="file" v-if="item.picture" class="no-border" accept="image/*" @change="changeImage($event)">
 						<!-- <button v-if="item.last" class="sureBtn">确定上传</button> -->
@@ -42,7 +42,7 @@
 					</div>
 				</template>
 			</div>
-			<div class="button">立即上传</div>
+			<div class="button" @click='singleUpload'>立即上传</div>
 			
 		</div>
 
@@ -55,7 +55,7 @@ import VChoosen from '../base/choosen'
 
 import myDatepicker from '../base/datePicker'
 
-import Axios from 'axios'
+// import Axios from 'axios'
 export default{
 	name:'import',
 	components:{
@@ -69,6 +69,8 @@ export default{
 			showuploadImage:false,
 			// 预览图片路径
 			imgSrc:"",
+			// 选择的图片
+			choseImage:null,
 			excellFile:null,
 			// filePath:'',
 			equipmentInfo:[
@@ -83,22 +85,6 @@ export default{
 					input:true,
 					value:''
 				},
-				{
-					name:'资产原值：',
-					input:true,
-					value:''
-				},
-				{
-					name:'购置日期：',
-					choseDate:true,
-					value:'',
-				},
-				{
-					name:'存档地点：',
-					input:true,
-					value:''
-				},
-				
 				{
 					name:'品牌：',
 					input:true,
@@ -129,8 +115,16 @@ export default{
 					input:true,
 					value:''
 				},
-				
-				
+				{
+					name:'资产原值：',
+					input:true,
+					value:''
+				},
+				{
+					name:'购置日期：',
+					choseDate:true,
+					value:'',
+				},
 				{
 					name:'当前负责人：',
 					input:true,
@@ -147,6 +141,12 @@ export default{
 					input:true,
 					value:''
 				},
+
+				{
+					name:'存档地点：',
+					input:true,
+					value:''
+				},
 				
 				{
 					name:'生产厂家：',
@@ -159,20 +159,21 @@ export default{
 					value:''
 				},
 				{
-					name:'状态：',
-					value:'',
-					choosen:true,
-					info:['在用','维修','遗弃']
-				},
-				{
 					name:'国产/进口：',
-					value:'',
+					value:'国产',
 					choosen:true,
 					info:['国产','进口']
 				},
 				{
+					name:'状态：',
+					value:'在用',
+					choosen:true,
+					info:['在用','维修','遗弃']
+				},
+				{
 					name:"选取图片：",
-					picture:true
+					picture:true,
+					value:''
 				},
 				{
 					name:'备注：',
@@ -180,11 +181,9 @@ export default{
 					value:''
 				},
 				{
-					showPic:true
+					showPic:true,
+					value:''
 				}
-				// {
-				// 	last:true
-				// }
 				],
 
 
@@ -199,24 +198,90 @@ export default{
 		// 上传文件
 		upladfile(){
 			
-			var file = new FormData();
-			file.append('file',this.excellFile)
-			Axios.post('https://www.stsidea.com/Excel/'+this.excellFile.name)
-			.then(function(res){
-			  console.log(res.data);
-			})
-			.catch(function(err){
-			  console.log(err);
-			})	
+			// var file = new FormData();
+			// file.append('file',this.excellFile)
+			// this.$axios.post('https://www.stsidea.com/Excel/'+this.excellFile.name)
+			// .then(function(res){
+			//   console.log(res.data);
+			// })
+			// .catch(function(err){
+			//   console.log(err);
+			// })	
 			
 		},
 		// 下载excel模板
 		downloadTemplate(){
-			window.open("https://www.stsidea.com/Excel/demo.xls") 
+
+			window.open("https://www.stsidea.com/ExcelTemplet/Templet.xls") 
 		},
+
 		changeFile(event){
 			this.excellFile = event.target.files[0]
+
 			console.log(this.excellFile)
+		},
+
+		// 上传照片
+		singleUploadImage(){
+			var param = new FormData()
+			param.append('file',this.choseImage,this.equipmentInfo[0].value);
+			param.append('name',this.equipmentInfo[0].value)
+			param.append('evalue','0')
+			// console.log(param)
+			this.$axios.get('https://www.stsidea.com/weixin.asmx/SaveImage',{
+				params:param
+			})
+			.then((res)=>{
+				console.log(res.data)
+			})
+
+		},
+
+		// 单个上传
+		singleUpload(){
+			var temp = new Array()
+			for (var i = 0; i < this.equipmentInfo.length - 1; i++) {
+				temp.push(this.equipmentInfo[i].value)
+			}	
+			// 去掉图片的值
+			temp.splice(18, 1);
+			// 16与15互换位置
+			var tempchange = temp[16];
+			temp[16] = temp[15];
+			temp[15] = tempchange
+			var param = temp.join(",")
+			 //进行网络请求
+			 var params = {
+			 	infoValue:param,
+			 	evalue:this.encrypt()
+			 }
+			 this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveSingleAssetInfo',this.qs.stringify(params))
+			 .then((res)=>{
+			 	console.log(res)
+			 }) 
+			 .catch((res)=>{
+
+			 })
+
+		},
+
+		// 选择改变
+		selectChange(attr,val){
+			// 17
+			if (attr == '状态：') {
+				// 状态
+				this.equipmentInfo[17].value = val
+			}else if(attr == '国产/进口：'){
+				// 国产/进口
+				this.equipmentInfo[16].value = val
+			}else{
+				// 时间
+				this.equipmentInfo[9].value = val
+				
+				console.log(this.equipmentInfo[9].value)
+			}
+
+
 		},
 		changeImage(event){
 			var that = this
@@ -228,7 +293,9 @@ export default{
  		   }
 
  		   var reader = new FileReader()
+
  		   reader.readAsDataURL(event.target.files[0])
+ 		   this.choseImage = event.target.files[0]
  		   reader.onload=function(e){
  		   		// $("#imgArea").innerHTML = '插入图片'
  		   		that.imgSrc = this.result;
