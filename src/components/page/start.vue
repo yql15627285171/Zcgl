@@ -1,21 +1,23 @@
 <template>
-	<div class="start-board">
+	<div class="start-board" v-loading="loading" element-loading-text="loading">
 		<div class="board-intro">
-			<h1 class="ml-20">盘点启动</h1>
-			<p>说明：根据提示启动盘点，当新一次盘点启动也是上一次盘点的截止时间</p>
+			<h1 class="ml-20">盘点任务</h1>
+			<p>说明：开启和结束盘点任务，结束任务与年份和次数无关，只会结束最新那次。一旦结束任务，同一年份同一次数的任务不可再启动</p>
 		</div>
-		<div class="start-operation">
+		<div class="start-operation" >
 			<div class="startYear">
-				<span>启动年份：</span>
+				<span>年份：</span>
 				<my-selection :selections='selectionYears' class="inline-block" @on-change="valueChange"></my-selection>
 			</div>
 			<div class="startNumber">
-				<span>启动次数：</span>
-				<input type="number" v-model="times">
+				<span>次数：</span>
+				<input v-model="times">
 			</div>
-			<div class="startButton" @click='startTask'>
-				启动
+			<div class="inline">
+				<div class="startButton" @click='startTask'>启动</div>
+				<div class="stopButton" @click='stopTask'>结束</div>
 			</div>
+			
 		</div>
 	</div>
 </template>
@@ -28,6 +30,7 @@ export default{
 	},
 	data(){
 		return{
+			loading:false,
 			selectionYears:[],
 			year:'',
 			times:'',
@@ -55,27 +58,68 @@ export default{
 			// console.log(index)
 			this.year = this.selectionYears[index].toString()
 		},
-
+		// 开启任务
 		startTask(){
-			var params = {
-					year:this.year,
-					times:this.times,
-					evalue:this.encrypt()
-				}
-			
+			var time = this.times.trim()
+			if ( /^[0-9]*$/g.test(time) && time.length>0){
+					var params = {
+						year:this.year,
+						times:time,
+						evalue:this.encrypt()
+					}
 				
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/StartCheckTask',this.qs.stringify(params))
+				this.loading = true
+				this.$axios.post('https://www.stsidea.com/weixin.asmx/StartCheckTask',this.qs.stringify(params))
+				.then((res)=>{
+					this.loading = false
+					var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+					
+					if (result[0] == '成功') {
+						// 提示成功
+						this.requestSuccess('启动成功')
+					}else if(result[0] == '失败'){
+						// 提示失败
+						this.requestFail(result[1])
+					}
+				})
+				.catch((res)=>{
+					this.loading = false
+					this.requestFail('启动失败')
+				})
+			}else{
+				this.requestWarning('启动次数必须是大于0的整数')
+			}
+
+						
+
+
+		},
+		// 结束任务
+		stopTask(){
+			var params = {
+				evalue:this.encrypt()
+			}
+			this.loading = true
+			this.$axios.post('https://www.stsidea.com/weixin.asmx/EndCheckTask',this.qs.stringify(params))
 			.then((res)=>{
-				// console.log(res.data)
-				var result = res.data.replace(/<[^>]+>/g, "").replace(/[\r\n]/g, "").replace(/[ ]/g, "")
-				console.log(result)
-				if (result.indexOf("成功") == 0) {
+				this.loading = false
+				console.log(res.data)
+				var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+				
+				if (result[0] == '成功') {
 					// 提示成功
-				}else if(result.indexOf("失败") == 0){
+					this.requestSuccess('已停止盘点')
+				}else if(result[0] == '失败'){
 					// 提示失败
+					this.requestFail(result[1])
 				}
 			})
+			.catch((res)=>{
+				this.loading = false
+				this.requestFail('停止盘点失败')
+			})
 		}
+
 	}
 }
 </script>
@@ -88,17 +132,30 @@ export default{
 	margin-bottom: 40px;
 }
 
+.inline{
+	display: flex
+	/* width: 00px */
+}
 
-.startButton{
+.startButton,
+.stopButton{
 	width: 100px;
 	height: 30px;
 	text-align: center;
 	line-height: 30px;
-	border:1px solid #4fc08d;
+	/* border:1px solid #4fc08d; */
   	background: #4fc08d;
   	color: #fff;
   	cursor: pointer;
   	border-radius: 5px;
-  	margin-left: 30px;
-}	
+  	
+}
+
+.stopButton{
+	background: #ff3333;
+	/* border: none; */
+	margin-left: 30px;
+}
+
+
 </style>

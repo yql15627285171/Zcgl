@@ -11,17 +11,27 @@ import dCode from "./components/page/dCode"
 import startPage from './components/page/start'
 import axios from 'axios'
 import qs from 'qs'
+import Model from './Model/model'
 import Encrypt from './AES/myAES'
-// import AES from './AES/AES'
+import 'element-ui/lib/theme-default/index.css'
+import { Notification,Loading,Select,Option} from 'element-ui';
+
 
 Vue.config.productionTip = false
-// Vue.use(axios)
 Vue.use(VueRouter)
 Vue.use(Encrypt)
+Vue.use(Model)
+
 Vue.prototype.$axios = axios;
 Vue.prototype.qs = qs
 
 
+// element-ui配置
+Vue.prototype.$notify = Notification
+Vue.use(Loading.directive)
+Vue.prototype.$loading = Loading.service
+Vue.use(Select)
+Vue.use(Option)
 
 
 let router = new VueRouter({

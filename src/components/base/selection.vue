@@ -65,7 +65,7 @@ export default{
 /* 自己添加的 */
 .selection-component .selection-show span{
   display: inline-block;
-  width: 55px;
+  width: 70px;
   text-align: center;
 }
 .selection-show .arrow {
@@ -104,7 +104,7 @@ export default{
   text-overflow: ellipsis;
   font-size: 13px;
   text-align: center;
-  width: 65px;
+  width: 79px;
 
 }
 .selection-list li:hover {

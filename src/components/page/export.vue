@@ -1,8 +1,8 @@
 <template>
-	<div class="export-board">
-		<div class="board-intro">
+	<div class="export-board" v-loading="loading" element-loading-text="loading">
+		<div class="board-intro" >
 			<h1 class="ml-20">数据导出</h1>
-			<p>说明：本模块具有数据查询与导出功能，根据不用的条件，能筛选出你想要的数据</p>
+			<p>说明：根据条件，筛选数据,并能下载相应的excel文件</p>
 		</div>
 		<div class="chose-line mt-20 ml-20">
 			<div class="chose-item inline-block ml-20">
@@ -68,18 +68,11 @@ export default{
 			selectNum:"",
 			showData:[],//显示在excel的数据
 			showTableData:[],
+			loading:false,//是否
 			state:[
 			{
 				label:"全部",
 				value:0
-			},
-			{
-				label:"在用",
-				value:1
-			},
-			{
-				label:"废弃",
-				value:2
 			}],
 			name:[
 			{
@@ -184,78 +177,127 @@ export default{
 		}
 	},
 	mounted(){
-		var params = {
-			AssetNo:"ALL",
-			evalue:this.encrypt()
-		}
-		this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAssetInfo',this.qs.stringify(params))
-		.then((res)=>{
-			console.log(res.data)
-			var resultString = res.data.replace(/<[^>]+>/g, "").replace(/[\r\n]/g, "").replace(/[ ]/g, "")
-			if (resultString.indexOf("失败") != 0){
-				// statement
-				var result = resultString.split("|")
-
-		
-				for (var i = 0; i < result.length; i++) {
-					var aPiece = result[i].split(",")
-					// 将数据封装成对象
-					var resObject = {
-						AssetNo:aPiece[0],
-
-						AssetName:aPiece[1],
-
-						AssetBrand:aPiece[2],
-
-						AssetType:aPiece[3],
-
-						AssetSize:aPiece[4],
-
-						FactoryNo:aPiece[5],
-
-						ManagementNo:aPiece[6],
-
-						AssetOrdor:aPiece[7],
-
-						PurchasePrice:aPiece[8],
-
-						PurchaseTime:aPiece[9],
-
-						KeeperName:aPiece[10],
-
-						KeeperPartLever1:aPiece[11],
-
-						KeeperPartLever2:aPiece[12],
-
-						Place:aPiece[13],
-
-						FactoryName:aPiece[14],
-
-						TradeType:aPiece[15],
-
-						Accessory:aPiece[16],
-
-						Status:aPiece[17],
-
-						remarks:aPiece[18],
-					}
-					this.dataSource.push(resObject)
-					this.showData = this.dataSource
-					
-					if (this.dataSource.length<10) {
-						this.showTableData = this.dataSource
-					}else{
-						this.showTableData = this.dataSource.slice(0,10)
-					}
-					
-				}
-
-			}
-			
-		})
-		
+		this.getAllStatus()
+		// this.getAllInfo()
 	},
+
+
+	
+
 	methods:{
+		// 获取状态
+		getAllStatus(){
+
+			var params = {
+				itemsName:'Status',
+				evalue:this.encrypt()
+			}
+
+			this.$axios.post('https://www.stsidea.com/weixin.asmx/GetItemsNameList',this.qs.stringify(params))
+			.then((res)=>{
+				var result = res.data.replace(/<[^>]+>/g, "").replace(/[' '\r\n]/g, "")
+				var jsonResult = JSON.parse(result)
+
+				if (jsonResult.state=='成功') {
+					// statement
+					var status = jsonResult.Status
+					for (var i = 0; i < status.length; i++) {
+						var temp = {
+							label:status[i],
+							value:i+1
+						}
+
+						this.state.push(temp);
+
+					}
+
+					this.getAllInfo()
+
+				}
+			})
+			.catch((res)=>{
+
+			})
+
+		},
+
+
+		// 获取所有
+		getAllInfo(){
+			this.loading = true
+			var params = {
+				AssetNo:"ALL",
+				evalue:this.encrypt()
+			}
+			this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAssetInfo',this.qs.stringify(params))
+			.then((res)=>{
+				this.loading = false
+				console.log(res.data)
+				var resultString = res.data.replace(/<[^>]+>/g, "").replace(/[\r\n]/g, "").replace(/[ ]/g, "")
+				if (resultString.indexOf("失败") != 0){
+					// statement
+					var result = resultString.split("|")
+
+			
+					for (var i = 0; i < result.length; i++) {
+						var aPiece = result[i].split(",")
+						// 将数据封装成对象
+						var resObject = {
+							AssetNo:aPiece[0],
+
+							AssetName:aPiece[1],
+
+							AssetBrand:aPiece[2],
+
+							AssetType:aPiece[3],
+
+							AssetSize:aPiece[4],
+
+							FactoryNo:aPiece[5],
+
+							ManagementNo:aPiece[6],
+
+							AssetOrdor:aPiece[7],
+
+							PurchasePrice:aPiece[8],
+
+							PurchaseTime:aPiece[9],
+
+							KeeperName:aPiece[10],
+
+							KeeperPartLever1:aPiece[11],
+
+							KeeperPartLever2:aPiece[12],
+
+							Place:aPiece[13],
+
+							FactoryName:aPiece[14],
+
+							TradeType:aPiece[15],
+
+							Accessory:aPiece[16],
+
+							Status:aPiece[17],
+
+							remarks:aPiece[18],
+						}
+						this.dataSource.push(resObject)
+						this.showData = this.dataSource
+						
+						if (this.dataSource.length<10) {
+							this.showTableData = this.dataSource
+						}else{
+							this.showTableData = this.dataSource.slice(0,10)
+						}
+						
+					}
+
+				}
+				
+			})
+
+	},
+
 		// 分类选择
 		selectChange(attr,index){
 

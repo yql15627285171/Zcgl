@@ -6,10 +6,11 @@
         <div class="logoText"><span>深圳航天泰瑞捷资产管理系统</span></div>
         <div class="header-nav">
           <ul>
-            <li @click="showOutModel">退出</li>
-            <li @click="showLoginModel">登录</li>
-            <li >|</li>
-            <li @click="showAboutModel">关于</li>
+            <li @click="showOutModel">{{userName}}</li>
+            <li v-if='userName.length > 0'>|</li>
+            <li @click="showLoginModel">退出登录</li>
+            
+         
           </ul>
         </div>
       </div>
@@ -41,14 +42,7 @@
       </div>
       
     </v-dialog>
-    <!-- 退出 -->
-    <v-dialog :isShow="showOutDialog"  @on-close="closeDialog">
-      是够要确定退出
-    </v-dialog>
-    <!-- 关于 -->
-    <v-dialog :isShow="showAboutDialog" @on-close="closeDialog">
-      这是资产管理系统
-    </v-dialog>
+   
   </div>
 </template>
 
@@ -65,6 +59,7 @@ export default {
   },
   data(){
     return{
+      userName:'',
       showLogDialog:false,
       showOutDialog:false,
       showAboutDialog:false,
@@ -102,7 +97,7 @@ export default {
         path:"/dCode"
       },
       {
-        name:'盘点启动',
+        name:'盘点任务',
         active:false,
         path:'/start'
       }],
@@ -122,14 +117,34 @@ export default {
 
     }
   },
+  mounted(){
+    console.log('登录')
+    this.loginCode = ''
+    var date = new Date()
+    var time = date.getFullYear().toString() + date.getMonth().toString() + date.getDate().toString()
+
+    var userInfo = this.fetch();
+    if ( time == userInfo.time ) {
+      console.log(userInfo)
+      this.userName = userInfo.name
+    }else {
+      this.showLoginModel()
+      console.log('显示二维码')
+    }
+
+  },
   methods:{
 
     
 
     showLoginModel(){
-
+      // 清除localStorage
+      this.remove()
+    
       this.showLogDialog=true
-      this.$axios.get('https://www.stsidea.com/weixin.asmx/GetQRCodeImageForLoad')
+
+      var params = {evalue:this.encrypt()}
+      this.$axios.post('https://www.stsidea.com/weixin.asmx/GetQRCodeImageForLoad',this.qs.stringify(params))
       .then((res)=>{
         var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
         this.loginCode = 'https://www.stsidea.com'+result[1]
@@ -147,11 +162,13 @@ export default {
 
     // 监听心跳
     listenHeart:function(){
-      var param = {guid:this.guid}
+      console.log('监听心跳')
+      var params = {
+        guid:this.guid,
+        evalue:this.encrypt()
+      }
 
-      this.$axios.get('https://www.stsidea.com/weixin.asmx/QueryQRCodeScanResult',{
-        params:param
-      })
+      this.$axios.post('https://www.stsidea.com/weixin.asmx/QueryQRCodeScanResult',this.qs.stringify(params))
       .then((res)=>{
         var result =res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：", )
         console.log(result)
@@ -159,8 +176,22 @@ export default {
           this.timer =   setTimeout(()=>{this.listenHeart()}, 2000)
           // this.listenHeart()
         }else  {
+          var name = result[1].split(",")[1]
+          // 存储在浏览器中
+          var date = new Date()
+          var store = {
+            time:date.getFullYear().toString() + date.getMonth().toString() + date.getDate().toString(),
+            name:name
+          }
+          this.save(store)
+
+
+          this.userName = name
           clearTimeout(this.timer)
           this.showLogDialog=false
+          // 重新登录就要重新刷新
+          // window.reload()
+          // this.$router.replace('/import')
         }
        
       })
@@ -170,7 +201,7 @@ export default {
       this.showOutDialog=true
     },
     showAboutModel(){
-      this.showAboutDialog=true
+      this.requestSuccess('导入成功')
     },
     closeDialog(){
       // this.showLogDialog=false;

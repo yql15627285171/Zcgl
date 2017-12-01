@@ -1,5 +1,5 @@
 <template>
-	<div class="sure-board">
+	<div class="sure-board" v-loading="loading" element-loading-text="loading">
 		<div class="board-intro">
 			<h1 class="ml-20">数据确认</h1>
 			<p>说明：处理数据操作时,必须注意选择的时间，只有正确的时间段才能显示正确的数据</p>
@@ -20,7 +20,8 @@
 				<my-selection :selections='selectionTimes' class="inline-block" @on-change="valueChange('times',$event)"></my-selection>
 			</div>
 			<div class="button inline-block ml-20" @click="checkData(true)">查询</div>
-			<div class="button inline-block ml-20" @click="allPassCheck()">一键审核</div>
+			<div class="button inline-block ml-20" @click="allPassCheck">一键审核</div>
+			<div class="button inline-block ml-20" @click="checkHistroyRecord">导出记录</div>
 	<!-- 	<div class="search-word inline-block ml-20">
 			关键词：
 		</div> -->
@@ -56,6 +57,8 @@ export default{
 	data(){
 
 		return{
+			histroyRecord:[],//历史记录
+			loading:false,
 			sign:11,
 			yearsAndTimes:[],//请求回来的年份和时间的数据源
 			times:'',
@@ -78,6 +81,10 @@ export default{
 			{
 				label:'未盘数据',
 				value:0
+			},
+			{
+				label:'盘点记录',
+				value:10000
 			}],
 			//表头
 			tableHeads:[
@@ -109,7 +116,7 @@ export default{
 		// 返回当前页码
 		pagechange(currentPage){
 			var startIndex = (currentPage - 1) * 10
-			var endIndex = start + 10
+			var endIndex = startIndex + 10
 			this.showData = this.dataSource.slice(startIndex, endIndex)
 		},
 		// 选项的改变
@@ -207,19 +214,24 @@ export default{
 			}else {
 				this.canAllPass = false
 			}
-
+				this.loading = true
+				console.log(params)
 				this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAssetCheckInfoByStatus',this.qs.stringify(params))
 				.then((res)=>{
+					this.loading = false
+
 					var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+					// console.log(result)
 					if (result[0] == '成功') {
 						// statement
-						this.dataSource.splice(0, this.dataSource.length)
-						this.showData.splice(0, this.showData.length)
-						
-						var resArr = result[1].split("|")
+						// this.dataSource.splice(0, this.dataSource.length)
+						// this.showData.splice(0, this.showData.length)
+						var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").substring(3)						
+						var resArr = result.split("|")
 
-						console.log(resArr)
+						
 						if (resArr[0] == "") {
+							this.requestSuccess('加成完成')
 							return
 						}
 						for (var i = 0; i < resArr.length; i++) {
@@ -235,7 +247,7 @@ export default{
 
 						}
 
-						console.log(this.dataSource)
+						// console.log(this.dataSource)
 
 						// 显示数据
 						if (this.dataSource.length <=10) {
@@ -244,9 +256,17 @@ export default{
 						}else {
 							this.showData = this.dataSource.slice(0,10)
 						}
-						
+							
+						this.requestSuccess('加成完成')
+
+					}else{
+						this.requestFail(result[1])
 					}
 					
+				})
+				.catch((res)=>{
+					this.loading = false
+					this.requestFail('加载失败')
 				})
 			
 		},
@@ -263,18 +283,134 @@ export default{
 					sign:'0',
 					evalue:this.encrypt()
 				}
-				// console.log(param)
+				this.loading = true
+				console.log(params)
 				this.$axios.post('https://www.stsidea.com/weixin.asmx/ExamineResult',this.qs.stringify(params))
 				.then((res)=>{
+					this.loading = false
+					var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+					if (result[0] == '成功') {
+						// statement
+						this.showData.splice(0,this.showData.length)
+						this.requestSuccess('审核成功')
+					}else{
+						this.requestFail('审核失败')
+					}
 
-					console.log(res)
+				})
+				.catch((res)=>{
+					this.loading = false
+					this.requestFail('审核失败')
+
 				})
 			}else {
 				// 提示用户不能一键审核
+				this.requestWarning('该数据类型无权一键审核')
 			}
 			
 		},
-		// 通过审核
+
+		// 查询盘点记录
+		checkHistroyRecord(){
+			// 清空记录
+			this.histroyRecord.splice(0, this.histroyRecord.length)
+			
+			var	params = {
+					year:this.year,
+					times:this.times,
+					evalue:this.encrypt()
+				}
+				this.loading = true
+			this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAllAssetCheckInfo',this.qs.stringify(params))
+			.then((res)=>{
+				this.loading = false
+				var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+				console.log(result[0])
+				if (result[0] == "成功") {
+					// statement
+					console.log('ss')
+					var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").substring(3)						
+					var resultInfo = result.split("|")
+					console.log(resultInfo)
+					for (var i = 0; i < resultInfo.length; i++) {
+						var aPiece = resultInfo[i].split(",")
+
+						var checkStatus = ''
+						if (aPiece[3] == '0') {
+							checkStatus = '未盘点'
+						}else if(aPiece[3] == '10'){
+							checkStatus = '未变数据(未审核)'
+						}else if(aPiece[3] == '11'){
+							checkStatus = '变动(未审核)'
+						}else{
+							checkStatus = '确认数据(已审核)'
+						}
+
+						var resObject = {
+
+							CheckYears:aPiece[0],
+
+							CheckTimes:aPiece[1],
+
+							checkTime:aPiece[2],
+
+							CheckStatus:checkStatus,
+							
+							CheckExecutor:aPiece[4],
+
+							AssetNo:aPiece[5],
+
+							AssetName:aPiece[6],
+
+							AssetBrand:aPiece[7],
+
+							AssetType:aPiece[8],
+
+							AssetSize:aPiece[9],
+
+							FactoryNo:aPiece[10],
+
+							ManagementNo:aPiece[11],
+
+							AssetOrdor:aPiece[12],
+
+							PurchasePrice:aPiece[13],
+
+							PurchaseTime:aPiece[14],
+
+							KeeperName:aPiece[15],
+
+							KeeperPartLever1:aPiece[16],
+
+							KeeperPartLever2:aPiece[17],
+
+							Place:aPiece[18],
+
+							FactoryName:aPiece[19],
+
+							TradeType:aPiece[20],
+
+							Accessory:aPiece[21],
+
+							Status:aPiece[22],
+
+							remarks:aPiece[23],
+						}
+
+						this.histroyRecord.push(resObject)
+
+					}
+
+				}
+				
+				this.export2Excel();
+			})
+			.catch((res)=>{
+				this.loading = false
+			})
+
+		},
+		// 单个审核
 		passCheck(index){
 
 			var params = {
@@ -284,11 +420,22 @@ export default{
 				sign:'0',
 				evalue:this.encrypt()
 			}
-			// console.log(param)
+			this.loading = true
 			this.$axios.post('https://www.stsidea.com/weixin.asmx/ExamineResult',this.qs.stringify(params))
 			.then((res)=>{
-				console.log(res)
-				// 改变显示
+				this.loading = false
+				var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+				if (result[0] == '成功') {
+					// statement
+					this.showData.splice(index, index+1)
+					this.requestSuccess('审核成功')
+				}else{
+					this.requestFail('审核失败')
+				}
+			})
+			.catch((res)=>{
+				this.loading = false
+				this.requestFail('审核失败')
 			})
 		},
 		// 取消审核
@@ -300,10 +447,22 @@ export default{
 				sign:'1',
 				evalue:this.encrypt()
 			}
-			// console.log(param)
+			this.loading = true
 			this.$axios.post('https://www.stsidea.com/weixin.asmx/ExamineResult',this.qs.stringify(params))
 			.then((res)=>{
-				console.log(res)
+				this.loading = false
+				var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
+				if (result[0] == '成功') {
+					// statement
+					this.showData.splice(index, index+1)
+					this.requestSuccess('取消审核成功')
+				}else{
+					this.requestFail('取消审核失败')
+				}
+			})
+			.catch((res)=>{
+				this.loading = false
+				this.requestFail('取消审核失败')
 			})
 		},
 
@@ -343,7 +502,27 @@ export default{
 				this.times = this.selectionTimes[0].label
 				this.checkData()
 			})
-		}
+		},
+
+				// 导出表格的两个方法
+	export2Excel() { 
+　　　　　　require.ensure([], () => { 
+　　　　　　　　const { export_json_to_excel } = require('../../vendor/Export2Excel'); 
+　　　　　　　　const tHeader = ['盘点年份','盘点次数','盘点日期','盘点状态','盘点人','资产编号', '设备名称', '品牌','型号','规格','出厂编号','行政部门编号','序列号','资产原值','日期','当前负责人','当前中心','使用部门','存放地点','生产厂家','国产/进口','附属设备或配置','状态','备注']; 
+　　　　　　　　const filterVal = ['CheckYears','CheckTimes','checkTime','CheckStatus','CheckExecutor','AssetNo','AssetName','AssetBrand','AssetType','AssetSize','FactoryNo','ManagementNo','AssetOrdor','PurchasePrice','PurchaseTime','KeeperName','KeeperPartLever1','KeeperPartLever2','Place','FactoryName','TradeType','Accessory','Status','remarks']; 
+　　　　　　　　const list = this.histroyRecord; 
+　　　　　　　　const data = this.formatJson(filterVal, list); 
+　　　　　　　　export_json_to_excel(tHeader, data, '操作记录'); 
+　　　　　　}) 
+　　　　}, 
+
+　　　　formatJson(filterVal, jsonData) { 
+　　　　　　return jsonData.map(v => filterVal.map(j => v[j])) 
+　　　　}
+
+
+
+
 	},
 	created(){
 		// var myDate = new Date()
@@ -388,14 +567,14 @@ export default{
 	display: inline-block
 }	
 .date-type{
-	margin-left: 40px;
+	margin-left: 30px;
 }
 
 .start-time{
-	margin-left: 40px;
+	margin-left: 30px;
 }
 .end-time{
-	margin-left: 50px;
+	margin-left: 30px;
 }
 
 
@@ -447,7 +626,7 @@ export default{
   	color: #fff;
   	cursor: pointer;
   	border-radius: 5px;
-  	margin-left: 20px;
+  	margin-left: 10px;
 }
 .pass,.cancel{
 	border: none;
