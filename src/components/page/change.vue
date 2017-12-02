@@ -45,7 +45,7 @@
 
 import myDatepicker from 'vue-datepicker/vue-datepicker-es6.vue'
 export default{
-	name:'change',
+	
 	components:{
 		myDatepicker
 	},
