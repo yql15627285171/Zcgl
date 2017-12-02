@@ -42,7 +42,6 @@
 	</div>
 </template>
 <script>
-// import VChoosen from '../base/choosen'
 
 import myDatepicker from 'vue-datepicker/vue-datepicker-es6.vue'
 export default{
