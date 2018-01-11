@@ -134,9 +134,7 @@ export default {
 
   },
   methods:{
-
-    
-
+  
     showLoginModel(){
       // 清除localStorage
       this.remove()

@@ -17,5 +17,8 @@ export default{
 	    // console.log(ADEData)
 	    return CryptoJS.AES.encrypt(ADEData, key, { iv: iv, mode: CryptoJS.mode.CBC, padding: CryptoJS.pad.ZeroPadding }).toString();
 		}
+
+
+		
 	 }
 }
