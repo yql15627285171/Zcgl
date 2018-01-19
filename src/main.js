@@ -35,7 +35,7 @@ Vue.use(Option)
 
 
 let router = new VueRouter({
-	// mode:'history',
+	mode:'history',
 	routes:[
 	{
 		path:'/',

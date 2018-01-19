@@ -9,8 +9,6 @@
             <li @click="showOutModel">{{userName}}</li>
             <li v-if='userName.length > 0'>|</li>
             <li @click="showLoginModel">退出登录</li>
-            
-         
           </ul>
         </div>
       </div>
@@ -31,7 +29,15 @@
       </div>
     </div>
     <div class="footer">
-      <p>CopyRight © 2017 深圳市航天泰瑞捷电子有限公司 版权所有</p>
+      
+      <span>CopyRight © 2017 深圳市航天泰瑞捷电子有限公司 版权所有</span>
+      <a href="http://www.miitbeian.gov.cn/">|粤ICP备17141636号-1</a>
+      <a href="http://www.miitbeian.gov.cn/" >
+        <img src="./assets/ba.png" class="gongan"></a>
+     
+      
+        
+  
     </div>
     <!-- 弹框 -->
     <!-- 登录 -->
@@ -171,7 +177,7 @@ export default {
         var result =res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：", )
         console.log(result)
         if (result[0]== '失败') {
-          this.timer =   setTimeout(()=>{this.listenHeart()}, 2000)
+          this.timer =   setTimeout(()=>{this.listenHeart()}, 1000)
           // this.listenHeart()
         }else  {
           var name = result[1].split(",")[1]
@@ -286,13 +292,21 @@ body {
 }
 
 .footer {
-  text-align: center;
+  /*text-align: center;*/
   height: 80px;
   width: 100%;
-  line-height: 80px;
+  /*line-height: 80px;*/
   background: #e3e4e8;
   clear: both;
   margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.gongan{
+  height: 20px;
+  display: block;
 }
 
 .logoImg{
@@ -381,5 +395,6 @@ body {
 .mb-20{
   margin-bottom: 20px;
 }
+
 
 </style>
