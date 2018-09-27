@@ -240,7 +240,7 @@ export default{
 			if (/^[0-9]*$/g.test(num) && num.length>0) {
 				// 网路请求
 				this.loading= true
-				this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAssetInfo',this.qs.stringify(params))
+				this.$axios.post('https://www.trjiot.cn/weixin.asmx/GetAssetInfo',this.qs.stringify(params))
 				.then((res)=>{
 				this.loading = false
 				 var result = res.data.replace(/<[^>]+>/g, "").replace(/[\r\n]/g, "")
@@ -267,7 +267,7 @@ export default{
 				this.choseDate.time = this.equipmentInfo[9].value
 
 				// 显示图片
-				var imgPath = 'https://www.stsidea.com/Images/'+this.equipmentInfo[0].value+'.jpg'
+				var imgPath = 'https://www.trjiot.cn/Images/'+this.equipmentInfo[0].value+'.jpg'
 				this.imgSrc = imgPath
 				
 				
@@ -349,9 +349,9 @@ export default{
  			this.loading = true
 
 
- 			// return this.$axios.post('https://www.stsidea.com/weixin.asmx/UpdateAssetInfoByAdmin',this.qs.stringify(param))
+ 			// return this.$axios.post('https://www.trjiot.cn/weixin.asmx/UpdateAssetInfoByAdmin',this.qs.stringify(param))
 
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/UpdateAssetInfoByAdmin',this.qs.stringify(param))
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/UpdateAssetInfoByAdmin',this.qs.stringify(param))
 			.then((res)=>{
 				// this.loading = false
 				var result =  res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "")
@@ -392,7 +392,7 @@ export default{
             headers:{'Content-Type':'multipart/form-data'}
           	}
 
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveImageForHtml',param,config)
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/SaveImageForHtml',param,config)
 			.then((res)=>{
 				this.loading = false
 				var result =  res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "")
@@ -410,7 +410,7 @@ export default{
 				this.requestFail('网络故障')
 			})
 
-			// return this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveImageForHtml',param,config)
+			// return this.$axios.post('https://www.trjiot.cn/weixin.asmx/SaveImageForHtml',param,config)
 		}
 
 	}

@@ -36,14 +36,14 @@ export default{
 					evalue:this.encrypt()
 				}
 				this.loading = true
-				this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveQRCodeImage',this.qs.stringify(params))
+				this.$axios.post('https://www.trjiot.cn/weixin.asmx/SaveQRCodeImage',this.qs.stringify(params))
 				.then((res)=>{
 					this.loading = false
 					
 					var resunltArr =res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
 					console.log(resunltArr)
 					if (resunltArr[0] == '成功') {
-						this.codeUrl = "https://www.stsidea.com" + resunltArr[1]
+						this.codeUrl = "https://www.trjiot.cn" + resunltArr[1]
 					}else{
 						this.requestWarning('搜索失败')
 					}
@@ -54,7 +54,7 @@ export default{
 					this.loading = false
 					this.requestWarning('搜索失败')
 				})
-				// this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveQRCodeImage', {CodeNo: this.propertyNum})
+				// this.$axios.post('https://www.trjiot.cn/weixin.asmx/SaveQRCodeImage', {CodeNo: this.propertyNum})
 				// .then((res)=>{
 				// 	console.log(res)
 				// })

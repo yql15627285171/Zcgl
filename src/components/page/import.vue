@@ -12,7 +12,7 @@
 			<input type="file" accept="application/vnd.ms-excel" class="chosenFile" @change="changeFile($event)" disabled>
 			<button type="button" @click="upladfile" class="ml-20 btn">确定上传</button>
 			<button type="button" @click="downloadTemplate" class="ml-20 btn">下载Excel模板</button>
-			<!-- <a href="https://www.stsidea.com/Images/0200230.jpg" download="template">下载模板</a> -->
+			<!-- <a href="https://www.trjiot.cn/Images/0200230.jpg" download="template">下载模板</a> -->
 			</div>
 		</div>
 		<div class="space mt-20 mb-20"></div>
@@ -244,7 +244,7 @@ export default{
 			
 			// var file = new FormData();
 			// file.append('file',this.excellFile)
-			// this.$axios.post('https://www.stsidea.com/Excel/'+this.excellFile.name)
+			// this.$axios.post('https://www.trjiot.cn/Excel/'+this.excellFile.name)
 			// .then(function(res){
 			//   console.log(res.data);
 			// })
@@ -256,7 +256,7 @@ export default{
 		// 下载excel模板
 		downloadTemplate(){
 
-			window.open("https://www.stsidea.com/ExcelTemplet/Templet.xls") 
+			window.open("https://www.trjiot.cn/ExcelTemplet/Templet.xls") 
 		},
 
 		changeFile(event){
@@ -284,7 +284,7 @@ export default{
             headers:{'Content-Type':'multipart/form-data'}
           	}
 
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveImageForHtml',param,config)
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/SaveImageForHtml',param,config)
 			.then((res)=>{
 				this.loading = false
 				var result =  res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "")
@@ -329,7 +329,7 @@ export default{
 
 				 console.log(params)
 
-				 this.$axios.post('https://www.stsidea.com/weixin.asmx/SaveSingleAssetInfo',this.qs.stringify(params))
+				 this.$axios.post('https://www.trjiot.cn/weixin.asmx/SaveSingleAssetInfo',this.qs.stringify(params))
 				 .then((res)=>{
 
 				 	var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")

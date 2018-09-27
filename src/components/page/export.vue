@@ -193,7 +193,7 @@ export default{
 				evalue:this.encrypt()
 			}
 
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/GetItemsNameList',this.qs.stringify(params))
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/GetItemsNameList',this.qs.stringify(params))
 			.then((res)=>{
 				var result = res.data.replace(/<[^>]+>/g, "").replace(/[' '\r\n]/g, "")
 				var jsonResult = JSON.parse(result)
@@ -229,7 +229,7 @@ export default{
 				AssetNo:"ALL",
 				evalue:this.encrypt()
 			}
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAssetInfo',this.qs.stringify(params))
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/GetAssetInfo',this.qs.stringify(params))
 			.then((res)=>{
 				this.loading = false
 				console.log(res.data)

@@ -69,7 +69,7 @@ export default{
 					}
 				
 				this.loading = true
-				this.$axios.post('https://www.stsidea.com/weixin.asmx/StartCheckTask',this.qs.stringify(params))
+				this.$axios.post('https://www.trjiot.cn/weixin.asmx/StartCheckTask',this.qs.stringify(params))
 				.then((res)=>{
 					this.loading = false
 					var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
@@ -100,7 +100,7 @@ export default{
 				evalue:this.encrypt()
 			}
 			this.loading = true
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/EndCheckTask',this.qs.stringify(params))
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/EndCheckTask',this.qs.stringify(params))
 			.then((res)=>{
 				this.loading = false
 				console.log(res.data)

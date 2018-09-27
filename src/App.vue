@@ -148,10 +148,10 @@ export default {
       this.showLogDialog=true
 
       var params = {evalue:this.encrypt()}
-      this.$axios.post('https://www.stsidea.com/weixin.asmx/GetQRCodeImageForLoad',this.qs.stringify(params))
+      this.$axios.post('https://www.trjiot.cn/weixin.asmx/GetQRCodeImageForLoad',this.qs.stringify(params))
       .then((res)=>{
         var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
-        this.loginCode = 'https://www.stsidea.com'+result[1]
+        this.loginCode = 'https://www.trjiot.cn'+result[1]
         
         // 获取guid
         var picName = result[1].split("/")[2]
@@ -172,7 +172,7 @@ export default {
         evalue:this.encrypt()
       }
 
-      this.$axios.post('https://www.stsidea.com/weixin.asmx/QueryQRCodeScanResult',this.qs.stringify(params))
+      this.$axios.post('https://www.trjiot.cn/weixin.asmx/QueryQRCodeScanResult',this.qs.stringify(params))
       .then((res)=>{
         var result =res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：", )
         console.log(result)

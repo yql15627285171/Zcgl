@@ -118,6 +118,7 @@ export default{
 			var startIndex = (currentPage - 1) * 10
 			var endIndex = startIndex + 10
 			this.showData = this.dataSource.slice(startIndex, endIndex)
+			console.log(this.showData)
 		},
 		// 选项的改变
 		valueChange(attr,index){
@@ -216,10 +217,10 @@ export default{
 			}
 				this.loading = true
 				console.log(params)
-				this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAssetCheckInfoByStatus',this.qs.stringify(params))
+				this.$axios.post('https://www.trjiot.cn/weixin.asmx/GetAssetCheckInfoByStatus',this.qs.stringify(params))
 				.then((res)=>{
 					this.loading = false
-
+					console.log(res.data)
 					var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
 					// console.log(result)
 					if (result[0] == '成功') {
@@ -285,7 +286,7 @@ export default{
 				}
 				this.loading = true
 				console.log(params)
-				this.$axios.post('https://www.stsidea.com/weixin.asmx/ExamineResult',this.qs.stringify(params))
+				this.$axios.post('https://www.trjiot.cn/weixin.asmx/ExamineResult',this.qs.stringify(params))
 				.then((res)=>{
 					this.loading = false
 					var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
@@ -321,7 +322,7 @@ export default{
 					evalue:this.encrypt()
 				}
 				this.loading = true
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/GetAllAssetCheckInfo',this.qs.stringify(params))
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/GetAllAssetCheckInfo',this.qs.stringify(params))
 			.then((res)=>{
 				this.loading = false
 				var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
@@ -421,7 +422,7 @@ export default{
 				evalue:this.encrypt()
 			}
 			this.loading = true
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/ExamineResult',this.qs.stringify(params))
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/ExamineResult',this.qs.stringify(params))
 			.then((res)=>{
 				this.loading = false
 				var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
@@ -448,7 +449,7 @@ export default{
 				evalue:this.encrypt()
 			}
 			this.loading = true
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/ExamineResult',this.qs.stringify(params))
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/ExamineResult',this.qs.stringify(params))
 			.then((res)=>{
 				this.loading = false
 				var result = res.data.replace(/<[^>]+>/g, "").replace(/[ \r\n]/g, "").split("：")
@@ -471,7 +472,7 @@ export default{
 			var params = {
 				evalue:this.encrypt()
 			}
-			this.$axios.post('https://www.stsidea.com/weixin.asmx/GetYearsAndTimesList',this.qs.stringify(params))
+			this.$axios.post('https://www.trjiot.cn/weixin.asmx/GetYearsAndTimesList',this.qs.stringify(params))
 			.then((res)=>{
 				var result = JSON.parse(res.data.replace(/<[^>]+>/g, "").replace(/[' '\r\n]/g, ""))
 				console.log(result)
